@@ -8,11 +8,17 @@
 
 /* Compact other-game entries: fit text to its assigned width without losing characters. */
 .other-row{min-height:19vh;padding:.9vh 0 1.1vh;gap:.65vh}.other-top{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:.5vw;align-items:center;font-size:1.08vw}.other-type,.other-drawn{display:block;min-width:0;white-space:nowrap;overflow:visible;text-overflow:clip}.other-drawn{text-align:right}.other-prize{font-size:1.85vw;line-height:1.12;min-width:0;overflow-wrap:anywhere}.other-subprize{font-size:1.15vw;line-height:1.12;min-width:0;overflow-wrap:anywhere}.other-bottom{gap:.65vw;align-items:start;padding-top:.2vh}.other-cell .other-caption{font-size:1.15vw;white-space:nowrap}.other-cell .other-big{display:block;min-width:0;font-size:2.65vw;line-height:1.12;white-space:nowrap;overflow-wrap:normal;word-break:normal;letter-spacing:-.035em}.other-cell .other-big.pending{font-size:1.7vw}.other-cell{gap:.25vh}.other-divider{background:var(--line)}
-</style></head><body><header><h1 id="eventTitle">Live Bash Results</h1><p id="message">Claim all main ticket prizes at the front window.</p><h2 id="section">Main Ticket Results</h2></header><div id="labels"></div><main id="viewport"><div id="columns"></div></main><footer><span id="status" role="status">Connecting to event results…</span><span id="version">v1.6</span></footer>
+
+/* v1.7: results contrast, entry separation and unobtrusive version marker. */
+.main-row .winner:not(.pending){color:#fff}
+.other-cell .other-caption{color:var(--muted)}
+.other-row{padding:1.35vh 0 1.65vh;min-height:20vh}
+#version{position:fixed;top:.55vh;right:.7vw;font-family:Helvetica,Arial,sans-serif;font-size:1.275vw;font-weight:300;color:var(--muted);opacity:.5;line-height:1;pointer-events:none;z-index:5;margin:0}
+</style></head><body><header><span id="version">v1.7</span><h1 id="eventTitle">Live Bash Results</h1><p id="message">Claim all main ticket prizes at the front window.</p><h2 id="section">Main Ticket Results</h2></header><div id="labels"></div><main id="viewport"><div id="columns"></div></main><footer><span id="status" role="status">Connecting to event results…</span></footer>
 <script>
 'use strict';
 const pullTabLabel=v=>String(v??'').replace(/\bstrip tickets?\b/gi,'Pull-Tabs');
-const VERSION='1.6',ENDPOINT='https://script.google.com/macros/s/AKfycbyk2Pj807Lvuggb9SwbPwO_lRnuSKh8vd5GqXphr9iN4yVujtrINJYxU8n74VHTQ-TdlA/exec';
+const VERSION='1.7',ENDPOINT='https://script.google.com/macros/s/AKfycbyk2Pj807Lvuggb9SwbPwO_lRnuSKh8vd5GqXphr9iN4yVujtrINJYxU8n74VHTQ-TdlA/exec';
 const TOP_HOLD=5000,BOTTOM_HOLD=10000,SCROLL_SPEED=22,REFRESH=10000;
 const $=id=>document.getElementById(id), make=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n};
 let hasLoaded=false,current=null,mode='main',signature='',phase='top',phaseStart=0,offset=0,maxOffset=0,raf=0,failures=0,versionBusy=false;
@@ -28,5 +34,6 @@ function tick(now){const elapsed=Math.max(0,now-phaseStart);if(phase==='top'&&el
 async function fetchJSON(url){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);try{const res=await fetch(url,{cache:'no-store',credentials:'omit',signal:controller.signal});if(!res.ok)throw Error('HTTP '+res.status);return await res.json()}finally{clearTimeout(timer)}}
 async function refresh(){try{const next=normalize(await fetchJSON(ENDPOINT));const changedEvent=(current?.meta?.['Event ID']||'')!==(next?.meta?.['Event ID']||'');current=next;hasLoaded=true;failures=0;$('status').textContent='';if(changedEvent){mode='main';render(true)}else render();}catch(e){failures++;$('status').textContent=current?'Connection interrupted — displaying last received results':'Waiting for event results — retrying';}finally{setTimeout(refresh,failures?Math.min(60000,10000*2**Math.min(failures-1,3))+Math.random()*2000:REFRESH)}}
 async function checkVersion(){if(versionBusy)return;versionBusy=true;try{const v=await fetchJSON(new URL('version.json',location.href));if(/^\d+(\.\d+)+$/.test(v.version)&&v.version!==VERSION){const u=new URL(location.href);const last=Number(u.searchParams.get('_releaseTime'))||0;if(Date.now()-last>120000){u.searchParams.set('_releaseTime',Date.now());location.replace(u.href)}}}catch(e){}finally{versionBusy=false}}
+window.addEventListener('keydown',e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;if(e.altKey||e.ctrlKey||e.metaKey||e.shiftKey||e.repeat)return;e.preventDefault();mode=mode==='main'?'other':'main';render(true)});
 window.addEventListener('resize',()=>{fitOtherText();measure()});render(true);raf=requestAnimationFrame(tick);refresh();setInterval(checkVersion,120000);
 </script></body></html>
