@@ -1,201 +1,177 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>WTVFC Live Bash Digital Display</title>
-<style>
-:root{color-scheme:dark;--gold:#e6c477;--bright:#f5d98e;--muted:#a9956b;--line:#3b301a}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;color:var(--gold);font-family:Arial,Helvetica,sans-serif;cursor:none}body{display:flex;flex-direction:column;padding:2.3vh 2.5vw 2.1vh}header{text-align:center;flex:none}h1{font-size:clamp(30px,4.575vw,99px);line-height:1.12;margin:0 0 1.2vh;font-weight:700;letter-spacing:-.025em;overflow-wrap:anywhere}#message{font-size:2.475vw;line-height:1.2;margin:0 0 1.5vh;color:var(--gold)}#section{font-size:3.0375vw;letter-spacing:.16em;text-transform:uppercase;margin:0 0 1.3vh;color:#000;background:var(--gold);font-weight:700;padding:.65vh 1vw;line-height:1.2;width:100%}#labels,#columns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3vw}#labels{flex:none;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:1.15vh 0;color:var(--muted);font-size:1.2vw;text-transform:uppercase;letter-spacing:.06em}.main-label,.main-row{display:grid;grid-template-columns:1.1fr 1fr;align-items:center;gap:.5vw}.main-label span:last-child,.main-row .winner{text-align:right}#viewport{flex:1;min-height:0;overflow:hidden;position:relative}#columns{align-items:start;will-change:transform}.column{min-width:0}.main-row{height:12.3vh;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;white-space:nowrap}.time{font-size:3.75vw;letter-spacing:-.035em}.winner{font-size:4.875vw;font-weight:700;letter-spacing:-.025em;color:var(--bright)}.pending{font-size:2.775vw;color:var(--muted);font-weight:400}.empty{grid-column:1/-1;text-align:center;padding:15vh 1vw;font-size:3.6vw;color:var(--muted)}footer{display:flex;justify-content:space-between;align-items:center;flex:none;font-size: 1.275vw;color:var(--muted);padding-top:1vh}#status{min-height:1em}#version{margin-left:auto}#viewport[aria-busy=true]{opacity:.9}
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>WTVFC Live Bash Results</title><style>
+*{box-sizing:border-box}body{margin:0;background:#f2f7f4;color:#18372c;font:16px system-ui,sans-serif}header{position:relative;background:#174c3b;color:white;text-align:center;padding:24px 12px}h1{margin:8px 0;font-size:2.5rem}small{letter-spacing:1px}main{max-width:850px;margin:auto;padding:16px}.notice{background:#fff1c8;padding:12px;border-radius:8px;color:#624a10;text-align:center;font-weight:bold}.hero{background:#174c3b;color:white;border-radius:12px;text-align:center;padding:22px;margin:16px 0}.hero strong{font-size:3rem;display:block}.hero p{margin:4px}nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}button,input{font:inherit;border:1px solid #a9c4b6;border-radius:8px;padding:12px}button{background:white;color:#174c3b;cursor:pointer}button.active{background:#174c3b;color:white}input{width:100%;background:white}article{background:white;border:1px solid #d9e5de;border-radius:9px;padding:12px 15px;margin:8px 0;display:flex;justify-content:space-between;align-items:center;gap:15px}article span{display:block;font-size:.85rem;color:#516a5e}article .winning-result{text-align:right;flex-shrink:0}article .winning-result span{white-space:nowrap}article b{font-size:1.1rem}article strong{font-size:1.6rem;white-space:nowrap}h2{font-size:1.25rem}footer{text-align:center;padding:24px;color:#516a5e} @media(min-width:650px){#list{display:grid;grid-template-columns:1fr 1fr;gap:8px}article{margin:0}}
 
-/* Fixed separators centered in the enlarged gutters. */
-#labels{position:relative}#labels::before,#labels::after,#viewport::before,#viewport::after{content:"";position:absolute;top:0;bottom:0;width:2px;background:var(--gold);opacity:.85;pointer-events:none;z-index:2;transform:translateX(-50%)}#labels::before,#viewport::before{left:calc(33.333333% - .5vw)}#labels::after,#viewport::after{left:calc(66.666667% + .5vw)}
+:root{--accent:#174c3b}header,.hero,button.active{background:var(--accent)}a{color:var(--accent)}#connection{font-size:.8rem;text-align:center;margin:8px} [hidden]{display:none!important}article strong{overflow-wrap:anywhere;white-space:normal}#archives a{display:block;padding:12px;background:white;border-radius:8px;margin:7px 0}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #dd9b21} .version{position:absolute;top:7px;right:10px;font:12px Helvetica,Arial,sans-serif;opacity:.85;letter-spacing:0} header{display:flex;align-items:center;justify-content:space-between;gap:14px;text-align:left;padding:28px 16px 20px}.header-copy{min-width:0;flex:1}.facebook{display:inline-flex;align-items:center;gap:7px;background:#1877f2;color:white;padding:10px 13px;border-radius:8px;text-decoration:none;font-size:.85rem;font-weight:600;flex-shrink:0}.facebook svg{width:19px;height:19px;flex-shrink:0}.announcement{background:#fff1c8;color:#624a10;border-radius:8px;text-align:center;padding:12px;min-height:calc(3 * 1.5em + 24px);line-height:1.5;overflow-wrap:anywhere}.announcement-line{white-space:pre-line;display:block;overflow-wrap:anywhere} @media(max-width:480px){header{gap:8px;padding:28px 10px 16px}header h1{font-size:1.8rem}header small{font-size:.72rem;letter-spacing:.25px}.facebook{max-width:116px;padding:8px;font-size:.75rem}} .facebook{background:transparent;color:white;padding:0;border-radius:0;gap:8px;max-width:235px;flex-shrink:1;font-weight:400;font-size:.85rem}.facebook svg{width:42px;height:42px;flex-shrink:0}.facebook span{display:block;line-height:1.3}.facebook b{display:block;font-size:inherit}.facebook small{display:block;font-size:.75rem;letter-spacing:0;margin-top:3px}.facebook:hover b{text-decoration:underline}@media(max-width:480px){.facebook{max-width:145px;font-size:.72rem;gap:5px}.facebook svg{width:30px;height:30px}.facebook small{font-size:.65rem;letter-spacing:0}header .header-copy{min-width:0}header h1{overflow-wrap:anywhere}} .announcement{display:flex;align-items:center;justify-content:center}.announcement-line{width:100%}
+/* Facebook: right-side icon, adjacent headline, full-width caption. */
+.facebook{display:flex;flex-direction:column;align-items:stretch;gap:4px;text-align:right;max-width:310px;flex:0 1 auto}.facebook .facebook-top{display:flex;justify-content:flex-end;align-items:center;gap:7px}.facebook .facebook-top b{text-align:right;line-height:1.25}.facebook .facebook-top svg{display:block;flex:none}.facebook small{margin:0;text-align:right;line-height:1.3;width:100%}@media(max-width:480px){.facebook{max-width:155px;gap:4px}.facebook .facebook-top{gap:5px}.facebook .facebook-top svg{width:30px;height:30px}}
+/* Explicit search reset and active-filter feedback. */
+.search-row{display:flex;align-items:center;gap:8px}.search-row input{flex:1;min-width:0}.search-row button{flex:none;font-size:.875rem;white-space:nowrap;padding:12px}.search-feedback{margin:8px 0 0;font-size:.85rem;line-height:1.4}.search-feedback p{margin:3px 0}.search-reminder{color:#B85C5C;font-weight:500}.search-empty-reset{margin:4px 0 8px;font-size:.875rem}@media(max-width:360px){.search-row{flex-wrap:wrap}.search-row input{flex-basis:100%}}
+/* Upcoming main-ticket drawing feature. */
+.next-drawing{background:#fff4d8;border:1px solid #d6b35e;border-radius:12px;text-align:center;padding:16px;margin:16px 0;color:#483719;overflow-wrap:anywhere}.next-drawing small{display:block;color:#96701d;font-weight:600;font-size:.85rem}.next-drawing strong{display:block;color:#795514;font-size:1.75rem;line-height:1.25;margin:5px 0}.next-drawing p{font-size:1.2rem;font-weight:600;line-height:1.3;margin:4px 0 0}#nav button{flex:1 1 0;min-width:0}
+/* Other Game Results: accessible, compact radio filters. */
+#gameFilters{min-width:0;margin:0 0 12px;padding:9px 12px 12px;border:1px solid #a9c4b6;border-radius:9px;background:white}#gameFilters legend{font-size:.85rem;font-weight:600;padding:0 5px;color:#516a5e}.game-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:4px 10px}.game-options label{display:flex;gap:6px;align-items:center;min-height:36px;font-size:.9rem;cursor:pointer;overflow-wrap:anywhere}.game-options input{width:18px;height:18px;flex:none;margin:0;padding:0;accent-color:var(--accent)}.game-options label:has(input:checked){font-weight:700;color:var(--accent)}
 
-/* Main Ticket results retain their existing contrast. */
-.main-row .winner:not(.pending){color:#fff}
-#version{position:fixed;top:.55vh;right:.7vw;font-family:Helvetica,Arial,sans-serif;font-size:1.275vw;font-weight:300;color:var(--muted);opacity:.5;line-height:1;pointer-events:none;z-index:5;margin:0}
+/* Compact upcoming drawing: one heading, one result line. */
+.next-drawing{padding:7px 10px;display:grid;grid-template-columns:auto auto;align-items:baseline;justify-content:center;column-gap:8px;row-gap:3px}
+.next-drawing small{grid-column:1/-1;font-size:.75rem;line-height:1.15}
+.next-drawing strong{justify-self:end;font-size:1.15rem;line-height:1.2;margin:0;white-space:nowrap}
+.next-drawing p{justify-self:start;text-align:left;font-size:1.05rem;line-height:1.2;margin:0;min-width:0;overflow-wrap:anywhere}
 
-/* Other Games: identical-height entries with independent text fitting. */
-#labels[hidden]{display:none}
-.other-row{--number-track:max(7.2vh,calc(6.5vw + .25vh));--entry-height:calc(18.744444vh + var(--number-track));height:var(--entry-height);min-height:var(--entry-height);max-height:var(--entry-height);display:grid;grid-template-rows:var(--number-track) minmax(0,1fr) 2.7vh;gap:.65vh;padding:1.55vh 0 5.994444vh;border-bottom:1px solid var(--line);overflow:hidden}
-.other-row + .other-row{margin-top:4.444444vh}
-.other-numbers,.other-meta{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:.7vw;min-width:0;min-height:0;align-items:start}
-.other-numbers{grid-template-columns:minmax(max-content,1fr) minmax(max-content,1fr);gap:.25vw;padding-right:.15vw}
-.other-cell{min-width:0;display:flex;flex-direction:column;gap:.25vh}
-.other-cell:last-child,.other-drawn{text-align:right}
-.other-caption{display:block;color:var(--muted);font-size:1.15vw;line-height:1.1;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
-.other-big{display:block;font-size:3.5476875vw;line-height:1.12;font-weight:700;letter-spacing:normal;color:#fff;white-space:nowrap;font-variant-numeric:tabular-nums}
-.other-big.pending{font-size:1.7vw;color:var(--muted);font-weight:400;letter-spacing:-.035em}
-.other-prize-wrap{min-width:0;min-height:0;display:flex;align-items:center;justify-content:center}
-.other-prize{width:100%;font-size:1.85vw;line-height:1.12;font-weight:700;color:var(--bright);text-align:center;overflow-wrap:anywhere}
-.other-meta{align-items:end;color:var(--muted);font-size:1.08vw;line-height:1.2;text-transform:uppercase;letter-spacing:.05em;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr)}
-.other-type,.other-drawn{display:block;min-width:0;white-space:nowrap}
-#adScreen{position:fixed;inset:0;background:#000;z-index:100;display:flex;align-items:center;justify-content:center}#adScreen[hidden]{display:none}#adImage{width:100%;height:100%;object-fit:contain;display:block}#adImage[hidden],#adFallback[hidden]{display:none}#adFallback{text-align:center;padding:5vw;color:var(--gold)}#adFallback strong{display:block;font-size:4.5vw;line-height:1.2}#adFallback span{display:block;margin-top:3vh;color:var(--muted);font-size:2.2vw}#adFallback small{position:fixed;bottom:1vh;left:2.5vw;right:2.5vw;text-align:center;font-family:Helvetica,Arial,sans-serif;font-size:1.275vw;font-weight:300;color:var(--muted);opacity:.5;line-height:1.2;pointer-events:none}
-</style></head><body><header><span id="version">v1.18</span><h1 id="eventTitle">Live Bash Results</h1><p id="message">Claim all main ticket prizes at the front window.</p><h2 id="section">Main Ticket Results</h2></header><div id="labels"></div><main id="viewport"><div id="columns"></div></main><footer><span id="status" role="status">Connecting to event results…</span></footer><div id="adScreen"><img id="adImage" alt="Advertisement" hidden><div id="adFallback"><strong>Washington Township<br>Volunteer Fire Company</strong><span>Thank you for your support.</span><small>Waiting for display data. Please contact the administrator if this screen remains visible for more than 10 minutes.</small></div></div>
-<script>
-'use strict';
+/* Other-game winning numbers take priority over descriptive text. */
+article.other-game{min-width:0}
+article.other-game .result-copy{flex:1 1 0;min-width:0;overflow-wrap:anywhere}
+article.other-game .result-number{flex:0 0 auto;max-width:100%;white-space:nowrap;overflow-wrap:normal;word-break:normal;text-align:right}
+@media(min-width:650px){#list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style></head><body><header><span class="version">v1.23</span><div class="header-copy"><small id="hosts">WASHINGTON TOWNSHIP VFC</small><h1 id="title">Live Bash Results</h1><div id="date"></div><div>WTVFC Live Bash Results</div></div><a class="facebook" href="https://www.facebook.com/116733318342068" target="_blank" rel="noopener noreferrer"><span class="facebook-top"><b>Click here to follow us on Facebook</b><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="4" fill="#1877f2"/><path fill="white" d="M23 40V23H29L30 16H23V12C23 9 24 8 27 8H31V2C29 1 27 1 25 1C19 1 15 5 15 12V16H9V23H15V40Z"/></svg></span><small>For the most up-to-date bingo, raffle and event details.</small></a></header><main><div id="notice" class="notice">Connecting to event results…</div><div id="announcements" class="announcement" hidden aria-label="Event announcements"></div><div id="connection" role="status" hidden></div><a id="back" href="?" hidden>← Current event</a><section id="event" hidden><div class="hero"><small>LATEST MAIN TICKET WINNER</small><strong id="latest">—</strong><p id="latestPrize"></p></div><div id="next" class="next-drawing" hidden><small>NEXT PENDING MAIN TICKET DRAWING</small><strong id="nextTime"></strong><p id="nextPrize"></p></div><h2>Find your winning number</h2><div class="search-row"><input id="q" placeholder="Search number, game name, serial or prize" aria-label="Search results" type="search"><button id="clearSearch" type="button" hidden>Clear Search</button></div><div id="searchFeedback" class="search-feedback" hidden><p id="searchCount" role="status" aria-live="polite"></p><p class="search-reminder">Clear your search to remove the text filter.</p></div><nav id="nav"></nav><fieldset id="gameFilters" hidden><legend>Filter by game type</legend><div id="gameOptions" class="game-options"></div></fieldset><h2 id="heading"></h2><div id="list"></div></section><h2>Previous events</h2><div id="archives"></div></main><footer id="footer">Washington Township Volunteer Fire Company<br>WTVFC Live Bash Results</footer><script>
 const pullTabLabel=v=>String(v??'').replace(/\bstrip tickets?\b/gi,'Pull-Tabs');
-const VERSION='1.18',ENDPOINT='https://script.google.com/macros/s/AKfycbyk2Pj807Lvuggb9SwbPwO_lRnuSKh8vd5GqXphr9iN4yVujtrINJYxU8n74VHTQ-TdlA/exec';
-const TOP_HOLD=5000,BOTTOM_HOLD=10000,SCROLL_SPEED=22,REFRESH=10000;
-const $=id=>document.getElementById(id), make=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n};
-let hasLoaded=false,current=null,mode='main',signature='',phase='top',phaseStart=0,offset=0,maxOffset=0,raf=0,failures=0,versionBusy=false;
-const str=v=>String(v??'').trim();
-function splitRows(rows){const q=Math.floor(rows.length/3),r=rows.length%3;const sizes=[q+(r>0?1:0),q+(r>1?1:0),q];let pos=0;return sizes.map(n=>{const chunk=rows.slice(pos,pos+n);pos+=n;return chunk})}
-function normalize(p){if(!p||p.error||!Object.prototype.hasOwnProperty.call(p,'event'))throw Error('Invalid response');if(p.event===null)return null;const e=p.event;if(!e.meta||!Array.isArray(e.main)||!Array.isArray(e.other))throw Error('Invalid event');return {meta:e.meta,main:e.main.filter(Array.isArray).map(r=>({time:str(r[0]),number:str(r[1])})),other:e.other.filter(Array.isArray).map(r=>({time:str(r[0]),type:pullTabLabel(str(r[1])),serial:str(r[2]),number:str(r[3]),prize:str(r[4]),color:str(r[5]),name:str(r[6])}))}}
-function drawRow(r){const n=make('div','main-row');n.append(make('span','time',r.time),make('span','winner'+(r.number?'':' pending'),r.number||'Pending'));return n}
-function otherRow(r){
-  const n=make('div','other-row'),top=make('div','other-numbers');
-  const left=make('div','other-cell'),right=make('div','other-cell');
-  if(r.type.toLowerCase()!=='raffle'||r.serial)left.append(make('span','other-caption','Serial #'),make('span','other-big',r.serial||'—'));
-  right.append(make('span','other-caption','Winning #'),make('span','other-big'+(r.number?'':' pending'),r.number||'Pending'));
-  top.append(left,right);
-  const wrap=make('div','other-prize-wrap');
-  const title=r.name&&r.prize&&r.name!==r.prize?r.name+' — '+r.prize:r.name||r.prize||'Result';
-  wrap.append(make('div','other-prize',title));
-  const meta=make('div','other-meta'),typeBits=[r.type,r.color?r.color+' ticket':''].filter(Boolean);
-  meta.append(make('span','other-type',typeBits.join(' · ')),make('span','other-drawn',r.time?'Drawn at '+r.time:''));
-  n.append(top,wrap,meta);return n;
+const endpoint='https://script.google.com/macros/s/AKfycbyk2Pj807Lvuggb9SwbPwO_lRnuSKh8vd5GqXphr9iN4yVujtrINJYxU8n74VHTQ-TdlA/exec';
+const requested=new URLSearchParams(location.search).get('event');const $=id=>document.getElementById(id);const el=(tag,text)=>{const e=document.createElement(tag);e.textContent=text;return e};let announcementFeedMissing=false;let data=null,mode='Main Ticket Results',busy=false,lastGood=null;const modes=['Main Ticket Results','Other Game Results'];
+let announcementMs=20000;let announcementRows=[],announcementIndex=0,announcementTimer=null;
+function renderAnnouncement(){const box=$('announcements');box.hidden=!announcementRows.length;if(!announcementRows.length){box.replaceChildren();return;}const line=el('div',announcementRows[announcementIndex]);line.className='announcement-line';box.replaceChildren(line);}
+function normalizeAnnouncements(rows){return Array.isArray(rows)?rows.map(r=>{if(typeof r==='string')return r.trim();if(Array.isArray(r))return r.map(v=>String(v??'').trim()).filter(Boolean).join('\n');if(r&&typeof r==='object')return String(r.text??r.announcement??'').trim();return '';}).filter(Boolean).map(pullTabLabel):[];}
+function announcementIntervalMs(seconds){const n=Number(seconds);return Number.isInteger(n)&&n>=1&&n<=300?n*1000:20000;}
+function setAnnouncements(rows,seconds){const next=normalizeAnnouncements(rows), ms=announcementIntervalMs(seconds);const same=JSON.stringify(next)===JSON.stringify(announcementRows);if(same&&ms===announcementMs)return;announcementMs=ms;if(!same){announcementRows=next;announcementIndex=0;}clearInterval(announcementTimer);announcementTimer=null;renderAnnouncement();if(next.length>1)announcementTimer=setInterval(()=>{announcementIndex=(announcementIndex+1)%announcementRows.length;renderAnnouncement()},announcementMs);}
+let gameFilter='All Games';
+const standardGameTypes=['All Games','Pull-Tabs','Tipboard','Raffle','Drawing','50/50','Other'];
+function renderGameFilters(){
+ const visible=mode==='Other Game Results';$('gameFilters').hidden=!visible;if(!visible)return;
+ const extras=[...new Set(data.other.map(r=>r.type).filter(t=>t&&!standardGameTypes.includes(t)))].sort();
+ const types=[...standardGameTypes,...extras];if(!types.includes(gameFilter))gameFilter='All Games';
+ const options=$('gameOptions');const signature=JSON.stringify(types);
+ if(options.dataset.types!==signature){options.dataset.types=signature;options.replaceChildren(...types.map(type=>{const label=el('label',''),radio=document.createElement('input');radio.type='radio';radio.name='gameType';radio.value=type;radio.addEventListener('change',()=>{if(radio.checked){gameFilter=type;render()}});label.append(radio,document.createTextNode(type));return label}));}
+ for(const radio of options.querySelectorAll('input'))radio.checked=radio.value===gameFilter;
 }
-function fitOtherText(){
-  if(mode!=='other')return;
-  const root=$('columns');
-  for(const el of root.querySelectorAll('.other-caption,.other-big.pending,.other-type,.other-drawn,.other-prize')){
-    el.style.fontSize='';const base=parseFloat(getComputedStyle(el).fontSize);if(!base||!el.clientWidth)continue;
-    const isPrize=el.classList.contains('other-prize');
-    const height=isPrize?el.parentElement.clientHeight:el.classList.contains('other-big')?el.closest('.other-numbers').clientHeight-(el.previousElementSibling?.offsetHeight||0)-window.innerHeight*.0025:el.closest('.other-meta')?.clientHeight||Infinity;
-    el.style.whiteSpace=isPrize?'normal':'nowrap';
-    let size=base;
-    const fits=()=>el.scrollWidth<=el.clientWidth+1&&el.scrollHeight<=height+1&&(!isPrize||el.scrollHeight<=parseFloat(getComputedStyle(el).lineHeight)*2+1);
-    while(!fits()&&size>1){size=Math.max(1,size*.94);el.style.fontSize=size+'px'}
+function fitOtherNumbers(){for(const n of $('list').querySelectorAll('.result-number')){n.style.fontSize='';const card=n.parentElement,style=getComputedStyle(card),available=card.clientWidth-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight)-parseFloat(style.columnGap)-Math.min(78,card.clientWidth*.25);if(available>0&&n.scrollWidth>available){const base=parseFloat(getComputedStyle(n).fontSize);n.style.fontSize=(base*available/n.scrollWidth*.98)+'px';}}}
+function clearSearch(){ clearTimeout(metricSearchTimer);$('q').value='';render();$('q').focus(); }
+function render(){const raw=$('q').value.trim(),q=raw.toLowerCase();$('clearSearch').hidden=!q;$('searchFeedback').hidden=!q;if(!data)return;$('nav').replaceChildren(...modes.map(m=>{const b=el('button',m);b.className=m===mode?'active':'';b.setAttribute('aria-pressed',String(m===mode));b.onclick=()=>{if(mode!==m){mode=m;metricCount(m==='Main Ticket Results'?'main':'other');render()}};return b}));renderGameFilters();$('heading').textContent=mode;let rows=mode==='Other Game Results'?data.other.slice().reverse():data.main;if(mode==='Other Game Results'&&gameFilter!=='All Games')rows=rows.filter(r=>r.type===gameFilter);rows=rows.filter(r=>Object.values(r).some(v=>String(v).toLowerCase().includes(q)));const summary=q?`Showing ${rows.length} matching ${rows.length===1?'result':'results'} for “${raw}” in ${mode}${mode==='Other Game Results'&&gameFilter!=='All Games'?' — '+gameFilter:''}.`:'';if($('searchCount').textContent!==summary)$('searchCount').textContent=summary;$('list').replaceChildren(...rows.map(r=>{let a=el('article',''),left=el('div','');if(mode==='Other Game Results'){a.className='other-game';left.className='result-copy'}left.append(el('span',r.time+(r.type?' · '+r.type+(r.name?' - '+r.name:''):' Drawing')),el('b',r.prize||'Prize not listed'));if(r.serial||r.color)left.append(el('span',[r.serial?'Serial # '+r.serial:'',r.color?r.color+' ticket':''].filter(Boolean).join(' · ')));if(!r.type&&data.meta['Early bird rule']&&/^5:(10|20|30|40|50) PM$/.test(r.time)&&data.meta['Early birds begin']==='5:10 PM')left.append(el('span',data.meta['Early bird rule']));if(!r.type&&r.number){const right=el('div','');right.className='winning-result';right.append(el('span','Winning Number'),el('strong',r.number));a.append(left,right)}else{const number=el('strong',r.number||'Pending');if(mode==='Other Game Results')number.className='result-number';a.append(left,number);}return a}));fitOtherNumbers();if(!rows.length){$('list').append(el('p',q?'No matching results.':mode==='Other Game Results'&&gameFilter!=='All Games'?'No '+gameFilter+' results yet.':'No results in this section yet.'));if(mode==='Other Game Results'&&gameFilter!=='All Games'){const all=el('button','Show All Games');all.type='button';all.className='search-empty-reset';all.onclick=()=>{gameFilter='All Games';render()};$('list').append(all);}if(q){const reset=el('button','Clear Search');reset.type='button';reset.className='search-empty-reset';reset.onclick=clearSearch;$('list').append(reset);}}}
+function show(payload){if(!payload||payload.error||!Array.isArray(payload.archive)||!('event' in payload))throw Error('Invalid response');const e=payload.event;const links=payload.archive.map(x=>{const a=el('a',x.date+' — '+x.name);a.href='?event='+encodeURIComponent(x.id);return a});$('archives').replaceChildren(...(links.length?links:[el('p','No previous events currently published.')]));$('back').hidden=!requested;$('event').hidden=!e;if(!e){metricReady=false;metricEvent='';metricKey='';announcementFeedMissing=false;setAnnouncements([]);$('notice').hidden=false;data=null;$('title').textContent='Live Bash Results';$('hosts').textContent='WASHINGTON TOWNSHIP VFC';$('date').textContent='';$('notice').textContent=requested?'This archived event is not available.':'No event currently running. Check previous events below.';return}if(!e.meta||!Array.isArray(e.main)||!Array.isArray(e.other))throw Error('Invalid event');data={meta:e.meta,main:e.main.map(r=>({time:r[0],number:r[1],prize:r[2]})),other:e.other.map(r=>({time:r[0],type:pullTabLabel(r[1]),serial:r[2],number:r[3],prize:r[4],color:r[5],name:r[6]||''}))};const m=e.meta;document.documentElement.style.setProperty('--accent',/toy|christmas/i.test(m.Theme||'')?'#174c3b':'#81232a');$('hosts').textContent=m.Hosts||'Washington Township VFC';$('title').textContent=m['Event name']||'Live Bash Results';$('date').textContent=m.Date||'';$('notice').hidden=true;announcementFeedMissing=!requested&&!Array.isArray(e.announcements)&&!Array.isArray(payload.announcements);setAnnouncements(requested?[]:(e.announcements??payload.announcements),m['Announcement interval (seconds)']);const last=data.main.filter(r=>r.number).at(-1),next=data.main.find(r=>!r.number);$('latest').textContent=last?last.number:'—';$('latestPrize').textContent=last?last.time+' · '+last.prize:'No winning numbers entered yet';const showNext=Boolean(next&&!requested&&m.Status!=='Completed');$('next').hidden=!showNext;$('nextTime').textContent=showNext?next.time:'';$('nextPrize').textContent=showNext?next.prize:'';render();metricInit(m);}
+// One timer per client; randomized polling and bounded retry backoff.
+const REFRESH_MIN_MS=45000, REFRESH_MAX_MS=60000;
+const RETRY_MIN_MS=10000, RETRY_MAX_MS=15000, RETRY_CAP_MS=60000;
+let refreshTimer=null, failures=0, nextRefreshAt=0;
+function randomDelay(min,max){return Math.floor(min+Math.random()*(max-min+1));}
+function retryDelay(){const factor=2**Math.min(Math.max(failures-1,0),3);return randomDelay(Math.min(RETRY_MIN_MS*factor,45000),Math.min(RETRY_MAX_MS*factor,RETRY_CAP_MS));}
+function clearRefreshTimer(){clearTimeout(refreshTimer);refreshTimer=null;}
+function armRefresh(){clearRefreshTimer();if(document.hidden||busy)return;refreshTimer=setTimeout(()=>{refreshTimer=null;if(!document.hidden)refresh();},Math.max(0,nextRefreshAt-Date.now()));}
+function scheduleRefresh(delay){nextRefreshAt=Date.now()+delay;armRefresh();}
+async function refresh(){
+  if(busy||document.hidden)return;
+  clearRefreshTimer();busy=true;
+  try{
+    const url=new URL(endpoint);if(requested)url.searchParams.set('event',requested);
+    const res=await fetch(url,{cache:'no-store',credentials:'omit',signal:AbortSignal.timeout(15000)});
+    if(!res.ok)throw Error('HTTP '+res.status);
+    const payload=await res.json();show(payload);lastGood=new Date();failures=0;
+    $('connection').textContent=announcementFeedMissing?'Announcement feed unavailable':'';$('connection').hidden=!announcementFeedMissing;
+  }catch(e){
+    failures++;$('connection').hidden=false;
+    $('connection').textContent=lastGood?'Connection interrupted — showing results from '+lastGood.toLocaleTimeString():'Unable to connect. Retrying automatically.';
+  }finally{
+    busy=false;scheduleRefresh(failures?retryDelay():randomDelay(REFRESH_MIN_MS,REFRESH_MAX_MS));
   }
 }
-function measure(){maxOffset=Math.max(0,$('columns').scrollHeight-$('viewport').clientHeight);offset=Math.min(offset,maxOffset);$('columns').style.transform=`translateY(${-offset}px)`}
-function render(reset=false){const e=current,m=e?.meta||{};const title=[(str(m['Event name'])||'')+' Live Results',str(m.Date)].filter(Boolean).join(' — ').trim();$('eventTitle').textContent=e?title:'Live Bash Results';$('message').textContent=mode==='main'?'Claim all main ticket prizes at the front window.':'';$('message').style.visibility=mode==='main'?'visible':'hidden';$('section').textContent=mode==='main'?'Main Ticket Results':'Other Game Results';const rows=e?e[mode]:[];const sig=JSON.stringify([mode,rows,!!e,hasLoaded]);if(sig!==signature){signature=sig;$('labels').hidden=mode==='other';const labels=mode==='main'?Array.from({length:3},()=>{const l=make('div','main-label');l.append(make('span','','Drawing Time'),make('span','','Winning Number'));return l}):[];$('labels').replaceChildren(...labels);$('columns').replaceChildren(...(rows.length?splitRows(rows).map(chunk=>{const c=make('div','column');c.append(...chunk.map(mode==='main'?drawRow:otherRow));return c}):[make('div','empty',!e?(hasLoaded?'No event currently available.':'Loading event results…'):mode==='main'?'No main ticket drawings available.':'No other game results yet.')]));fitOtherText();}if(reset){offset=0;phase='top';phaseStart=performance.now()}measure();}
-function tick(now){if(mode==='ad'){if(!adLoading&&adDeadline!==null&&now>=adDeadline)advanceAd();raf=requestAnimationFrame(tick);return;}const elapsed=Math.max(0,now-phaseStart);if(phase==='top'&&elapsed>=TOP_HOLD){phase=maxOffset>0?'scroll':'bottom';phaseStart=now;offset=0;}else if(phase==='scroll'){offset=Math.min(maxOffset,elapsed*SCROLL_SPEED/1000*window.innerHeight/1080);if(offset>=maxOffset){phase='bottom';phaseStart=now;}}else if(phase==='bottom'&&elapsed>=BOTTOM_HOLD){if(mode==='main'){mode='other';render(true)}else completeResultsCycle();} $('columns').style.transform=`translateY(${-offset}px)`;raf=requestAnimationFrame(tick)}
-async function fetchJSON(url){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);try{const res=await fetch(url,{cache:'no-store',credentials:'omit',signal:controller.signal});if(!res.ok)throw Error('HTTP '+res.status);return await res.json()}finally{clearTimeout(timer)}}
-async function refresh(){try{const url=new URL(ENDPOINT);url.searchParams.set('display','1');url.searchParams.set('hybrid','1');if(forceAds)url.searchParams.set('mode','ads');const payload=await fetchJSON(url);applyDisplayPayload(payload);failures=0;$('status').textContent='';}catch(e){failures++;$('status').textContent=current?'Connection interrupted — displaying last received results':'Waiting for display data — retrying';}finally{setTimeout(refresh,failures?Math.min(60000,10000*2**Math.min(failures-1,3))+Math.random()*2000:REFRESH)}}
-async function checkVersion(){if(versionBusy)return;versionBusy=true;try{const v=await fetchJSON(new URL('version.json',location.href));if(/^\d+(\.\d+)+$/.test(v.version)&&v.version!==VERSION){const u=new URL(location.href);const last=Number(u.searchParams.get('_releaseTime'))||0;if(Date.now()-last>120000){u.searchParams.set('_releaseTime',Date.now());location.replace(u.href)}}}catch(e){}finally{versionBusy=false}}
-window.addEventListener('keydown',e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;if(e.altKey||e.ctrlKey||e.metaKey||e.shiftKey||e.repeat)return;e.preventDefault();manualAdvance()});
-// Display policy and shared ad list. The explicit URL override always wins.
-const adScreen=$('adScreen'),adImage=$('adImage'),adFallback=$('adFallback');
-const forceAds=new URLSearchParams(location.search).get('mode')==='ads';
-const ADS_ONLY='Advertising Only', RESULTS_ADS='Bash Results & Advertising', RESULTS_ONLY='Bash Results Only';
-let policy=forceAds?ADS_ONLY:'pending';
-let adFeed={seconds:15,ads:[]},adLastId='',adNextIndex=0,adToken=0,adDeadline=null,adLoading=false,adCurrentKey='';
-const adCache=new Map(),adPending=new Map();
-const AD_CACHE_MAX=24*1024*1024, AD_RETRY_MS=10000;
-function resolveDisplayPolicy(feed){return forceAds?ADS_ONLY:[ADS_ONLY,RESULTS_ADS,RESULTS_ONLY].includes(feed?.displayMode)?feed.displayMode:RESULTS_ADS}
-function adKey(ad){return ad.id+':'+ad.version}
-function setAdFeed(feed){
-  const list=Array.isArray(feed?.ads)?feed.ads.filter(a=>a&&/^[A-Za-z0-9_-]{10,100}$/.test(a.id)&&a.version):[];
-  const seconds=Number(feed?.seconds), before=JSON.stringify(adFeed.ads.map(adKey));
-  adFeed={seconds:Number.isFinite(seconds)&&seconds>=5&&seconds<=300?seconds:15,ads:list};
-  const found=list.findIndex(a=>a.id===adLastId);
-  if(found>=0)adNextIndex=(found+1)%list.length;
-  else adNextIndex=list.length?Math.min(adNextIndex,list.length-1):0;
-  for(const key of adCache.keys())if(!list.some(a=>adKey(a)===key))adCache.delete(key);
-  return before!==JSON.stringify(list.map(adKey));
+// Anonymous, event-scoped metrics. No search terms, IP addresses, or device fingerprints are stored.
+let metricEvent='',metricKey='',metricLastSent=0,metricSearchTimer=null,metricReady=false;
+const METRIC_FIELDS=['visits','main','other','searches','hits','misses','facebook','activeSeconds'];
+const metricDevice=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)?'mobile':'desktop';
+function randomBrowserId(){return Array.from(crypto.getRandomValues(new Uint8Array(16)),n=>n.toString(16).padStart(2,'0')).join('')}
+function metricState(update){
+  if(!metricReady||!metricKey)return null;
+  try{
+    const raw=localStorage.getItem(metricKey);
+    let state=raw?JSON.parse(raw):null;
+    if(!state||!(/^[a-f0-9]{32}$/).test(state.browser))state={browser:randomBrowserId(),lastActive:0,lastVisible:0,...Object.fromEntries(METRIC_FIELDS.map(k=>[k,0]))};
+    if(update)update(state);
+    localStorage.setItem(metricKey,JSON.stringify(state));
+    return state;
+  }catch(_){metricReady=false;return null;}
 }
-function cacheAd(key,src){
-  adCache.delete(key);adCache.set(key,src);
-  let bytes=[...adCache.values()].reduce((total,v)=>total+v.length,0);
-  while(bytes>AD_CACHE_MAX&&adCache.size>1){
-    const first=adCache.keys().next().value;bytes-=adCache.get(first).length;adCache.delete(first);
-  }
+function metricTouch(state,now=Date.now()){
+  if(!state.lastActive||now-state.lastActive>=30*60*1000){state.visits=(state.visits||0)+1;state.lastVisible=0;}
+  if(state.lastVisible&&now-state.lastVisible<=150000)state.activeSeconds=(state.activeSeconds||0)+Math.round((now-state.lastVisible)/1000);
+  state.lastActive=now;state.lastVisible=now;
 }
-function cachedAd(key){
-  const src=adCache.get(key);if(src){adCache.delete(key);adCache.set(key,src);}return src;
+function metricInit(meta){
+  const id=String(meta?.['Event ID']||'');
+  if(requested||!id||!['Live','Demonstration'].includes(meta?.Status)){metricReady=false;metricEvent='';metricKey='';return;}
+  if(id===metricEvent&&metricReady){metricFlush(false);return;}
+  metricEvent=id;metricKey='wtvfc-portal-metrics:'+encodeURIComponent(id);metricReady=true;metricLastSent=0;
+  const st=metricState(s=>{metricTouch(s);const key=mode==='Main Ticket Results'?'main':'other';s[key]=(s[key]||0)+1;});
+  if(st)metricFlush(true);
 }
-function loadAd(ad){
-  const key=adKey(ad),cached=cachedAd(key);
-  if(cached)return Promise.resolve(cached);
-  if(adPending.has(key))return adPending.get(key);
-  const task=(async()=>{
-    const url=new URL(ENDPOINT);url.searchParams.set('ad',ad.id);url.searchParams.set('version',ad.version);
-    const p=await fetchJSON(url);
-    if(!p||!['image/jpeg','image/png'].includes(p.mime)||typeof p.data!=='string'||!p.data||p.data.length>5600000)throw Error('Invalid advertisement');
-    const src='data:'+p.mime+';base64,'+p.data;
-    await new Promise((resolve,reject)=>{const img=new Image();img.onload=resolve;img.onerror=reject;img.src=src});
-    if(adFeed.ads.some(a=>adKey(a)===key))cacheAd(key,src);
-    return src;
-  })().finally(()=>adPending.delete(key));
-  adPending.set(key,task);return task;
+function metricCount(key){metricState(s=>{metricTouch(s);s[key]=(s[key]||0)+1;});}
+function metricSearch(){
+  clearTimeout(metricSearchTimer);
+  if(!$('q').value.trim()||!metricReady)return;
+  metricSearchTimer=setTimeout(()=>{
+    const q=$('q').value.trim().toLowerCase();
+    if(!q||!data||!metricReady)return;
+    let rows=mode==='Main Ticket Results'?data.main:data.other;
+    if(mode==='Other Game Results'&&gameFilter!=='All Games')rows=rows.filter(r=>r.type===gameFilter);
+    const found=rows.some(r=>Object.values(r).some(v=>String(v).toLowerCase().includes(q)));
+    metricState(s=>{metricTouch(s);s.searches=(s.searches||0)+1;const k=found?'hits':'misses';s[k]=(s[k]||0)+1;});
+  },750);
 }
-function preloadNextAd(){
-  if(policy===RESULTS_ONLY||policy==='pending'||(policy===RESULTS_ADS&&!current))return;
-  const a=adFeed.ads[adNextIndex];if(a)loadAd(a).catch(()=>{});
+function metricFlush(force=false,hidden=false){
+  if(!metricReady||(!hidden&&document.hidden)||(!force&&Date.now()-metricLastSent<90000))return;
+  const state=metricState(s=>{
+    if(!hidden)metricTouch(s);
+    else{if(s.lastVisible&&Date.now()-s.lastVisible<=150000)s.activeSeconds=(s.activeSeconds||0)+Math.round((Date.now()-s.lastVisible)/1000);s.lastVisible=0;}
+  });
+  if(!state)return;
+  const payload=JSON.stringify({kind:'portalMetrics',browser:state.browser,event:metricEvent,device:metricDevice,...Object.fromEntries(METRIC_FIELDS.map(k=>[k,Math.max(0,Number(state[k])||0)]))});
+  metricLastSent=Date.now();
+  // Fire-and-forget only; cumulative counters are idempotent and re-sent later.
+  try{if(navigator.sendBeacon&&navigator.sendBeacon(endpoint,payload))return;}catch(_){}
+  try{fetch(endpoint,{method:'POST',mode:'no-cors',credentials:'omit',keepalive:true,headers:{'Content-Type':'text/plain;charset=UTF-8'},body:payload}).catch(()=>{});}catch(_){}
 }
-function showAdFallback(retry=true){
-  adScreen.hidden=false;adImage.hidden=true;adImage.removeAttribute('src');adFallback.hidden=false;
-  adCurrentKey='';adLoading=false;adDeadline=retry?performance.now()+AD_RETRY_MS:null;
-  mode='ad';
-}
-function leaveAd(reset=true){
-  adToken++;adLoading=false;adDeadline=null;adCurrentKey='';adScreen.hidden=true;adImage.hidden=true;adImage.removeAttribute('src');adFallback.hidden=true;
-  mode='main';render(reset);preloadNextAd();
-}
-function advanceAd(){if(policy===ADS_ONLY)startAd();else leaveAd();}
-function completeResultsCycle(){
-  if(policy===RESULTS_ADS&&current&&adFeed.ads.length)startAd();
-  else leaveAd();
-}
-async function startAd(){
-  if(policy===RESULTS_ONLY||policy==='pending'||(policy===RESULTS_ADS&&!current)){leaveAd();return;}
-  if(!adFeed.ads.length){
-    adToken++;
-    if(policy===ADS_ONLY)showAdFallback();else leaveAd();
-    return;
-  }
-  const token=++adToken;
-  mode='ad';adLoading=true;adDeadline=null;
-  // Do not display results while in the all-day advertising mode.
-  if(policy===ADS_ONLY&&(adScreen.hidden||!adFeed.ads.some(a=>adKey(a)===adCurrentKey))){
-    showAdFallback(false);adLoading=true;
-  }
-  const list=adFeed.ads.slice(),start=adNextIndex%list.length;
-  for(let i=0;i<list.length;i++){
-    if(token!==adToken||mode!=='ad')return;
-    const ad=list[(start+i)%list.length],key=adKey(ad);
-    try{
-      let src=cachedAd(key);
-      if(!src&&i===0){
-        let timeout;
-        try{src=await Promise.race([loadAd(ad),new Promise((_,reject)=>{timeout=setTimeout(()=>reject(Error('Advertisement preload timeout')),4000)})]);}
-        finally{clearTimeout(timeout);}
-      }
-      if(token!==adToken||mode!=='ad')return;
-      if(!src||!adFeed.ads.some(a=>adKey(a)===key))continue;
-      adLastId=ad.id;const index=adFeed.ads.findIndex(a=>a.id===ad.id);adNextIndex=(index+1)%adFeed.ads.length;
-      adCurrentKey=key;adImage.src=src;adImage.hidden=false;adFallback.hidden=true;adScreen.hidden=false;
-      adDeadline=performance.now()+adFeed.seconds*1000;adLoading=false;preloadNextAd();return;
-    }catch(_){if(token!==adToken)return;}
-  }
-  if(token===adToken){
-    // Skip a broken ad rather than getting stuck on it.
-    adLastId=list[start].id;const i=adFeed.ads.findIndex(a=>a.id===adLastId);
-    if(i>=0)adNextIndex=(i+1)%adFeed.ads.length;
-    if(policy===ADS_ONLY){showAdFallback();preloadNextAd();}else leaveAd();
-  }
-}
-function applyDisplayPayload(payload){
-  const next=normalize(payload),previous=policy,changedEvent=(current?.meta?.['Event ID']||'')!==(next?.meta?.['Event ID']||'');
-  current=next;hasLoaded=true;policy=resolveDisplayPolicy(payload.advertising);
-  if(changedEvent&&previous!==ADS_ONLY&&policy!==ADS_ONLY){adLastId='';adNextIndex=0;}
-  const listChanged=setAdFeed(payload.advertising);
-  if(policy===ADS_ONLY){
-    if(previous!==ADS_ONLY||mode!=='ad'||(listChanged&&(adLoading||!adFeed.ads.some(a=>adKey(a)===adCurrentKey))))startAd();
-    else preloadNextAd();
-    return;
-  }
-  if(previous!==policy||changedEvent||(mode==='ad'&&policy===RESULTS_ONLY)){leaveAd();return;}
-  if(mode==='ad'){
-    if(!adFeed.ads.length||(!adLoading&&!adFeed.ads.some(a=>adKey(a)===adCurrentKey)))leaveAd();
-    return;
-  }
-  render();preloadNextAd();
-}
-function manualAdvance(){
-  if(policy==='pending')return;
-  if(policy===ADS_ONLY){if(!adLoading)startAd();return;}
-  if(mode==='ad')leaveAd();
-  else if(mode==='main'){mode='other';render(true);}
-  else completeResultsCycle();
-}
+document.querySelector('.facebook').addEventListener('click',()=>{metricCount('facebook');metricFlush(true);});
+window.addEventListener('pagehide',()=>{clearTimeout(metricSearchTimer);metricFlush(true,true);});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(metricSearchTimer);metricFlush(true,true);}else metricFlush(true);});
 
-window.addEventListener('resize',()=>{if(mode!=='ad'){fitOtherText();measure()}});showAdFallback(false);raf=requestAnimationFrame(tick);refresh();setInterval(checkVersion,120000);
+window.addEventListener('resize',fitOtherNumbers);$('q').oninput=()=>{render();metricSearch()};$('clearSearch').onclick=clearSearch;
+// Fetch immediately on initial visible load. Pause polling in background;
+// on return, retain the deadline or refresh if overdue, with retry jitter.
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){clearRefreshTimer();return;}
+  if(busy)return;
+  if(nextRefreshAt<=Date.now()&&failures){scheduleRefresh(retryDelay());return;}
+  armRefresh();
+});
+if(!document.hidden)refresh();
+
+// Release manifest is separate from the live drawing data service.
+const SITE_VERSION = '1.23';
+const VERSION_CHECK_MS = 2 * 60 * 1000;
+let checkingVersion = false;
+async function checkSiteVersion() {
+  if (checkingVersion || document.hidden) return;
+  checkingVersion = true;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+  try {
+    const manifest = new URL('version.json', location.href);
+    manifest.searchParams.set('_ts', String(Date.now()));
+    const response = await fetch(manifest, {cache:'no-store', credentials:'omit', signal:controller.signal});
+    if (!response.ok) return;
+    const release = await response.json();
+    if (typeof release.version !== 'string' || !/^\d+\.\d+(?:\.\d+)?$/.test(release.version) || release.version === SITE_VERSION) return;
+    const target = new URL(location.href);
+    // Avoid rapid reload loops if GitHub serves an older HTML file during deployment.
+    const attempted = Number(target.searchParams.get('_releaseTime')) || 0;
+    if (target.searchParams.get('_release') === release.version && Date.now() - attempted < VERSION_CHECK_MS) return;
+    target.searchParams.set('_release', release.version);
+    target.searchParams.set('_releaseTime', String(Date.now()));
+    // Retain the selected event URL and replace rather than adding a history entry.
+    location.replace(target.href);
+  } catch (_) {
+    // Keep the current working page if the manifest is temporarily unavailable.
+  } finally {
+    clearTimeout(timeout);
+    checkingVersion = false;
+  }
+}
+checkSiteVersion();
+setInterval(checkSiteVersion, VERSION_CHECK_MS);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) checkSiteVersion(); });
 </script></body></html>
