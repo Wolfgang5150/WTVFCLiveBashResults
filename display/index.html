@@ -18,17 +18,17 @@
 .other-cell{min-width:0;display:flex;flex-direction:column;gap:.25vh}
 .other-cell:last-child,.other-drawn{text-align:right}
 .other-caption{display:block;color:var(--muted);font-size:1.15vw;line-height:1.1;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
-.other-big{display:block;font-size:4.6375vw;line-height:1.12;font-weight:700;letter-spacing:-.035em;color:#fff;white-space:nowrap;font-variant-numeric:tabular-nums}
-.other-big.pending{font-size:1.7vw;color:var(--muted);font-weight:400}
+.other-big{display:block;font-size:4.17375vw;line-height:1.12;font-weight:700;letter-spacing:-.10em;color:#fff;white-space:nowrap;font-variant-numeric:tabular-nums}
+.other-big.pending{font-size:1.7vw;color:var(--muted);font-weight:400;letter-spacing:-.035em}
 .other-prize-wrap{min-width:0;min-height:0;display:flex;align-items:center;justify-content:center}
 .other-prize{width:100%;font-size:1.85vw;line-height:1.12;font-weight:700;color:var(--bright);text-align:center;overflow-wrap:anywhere}
 .other-meta{align-items:end;color:var(--muted);font-size:1.08vw;line-height:1.2;text-transform:uppercase;letter-spacing:.05em;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr)}
 .other-type,.other-drawn{display:block;min-width:0;white-space:nowrap}
-</style></head><body><header><span id="version">v1.12</span><h1 id="eventTitle">Live Bash Results</h1><p id="message">Claim all main ticket prizes at the front window.</p><h2 id="section">Main Ticket Results</h2></header><div id="labels"></div><main id="viewport"><div id="columns"></div></main><footer><span id="status" role="status">Connecting to event results…</span></footer>
+</style></head><body><header><span id="version">v1.13</span><h1 id="eventTitle">Live Bash Results</h1><p id="message">Claim all main ticket prizes at the front window.</p><h2 id="section">Main Ticket Results</h2></header><div id="labels"></div><main id="viewport"><div id="columns"></div></main><footer><span id="status" role="status">Connecting to event results…</span></footer>
 <script>
 'use strict';
 const pullTabLabel=v=>String(v??'').replace(/\bstrip tickets?\b/gi,'Pull-Tabs');
-const VERSION='1.12',ENDPOINT='https://script.google.com/macros/s/AKfycbyk2Pj807Lvuggb9SwbPwO_lRnuSKh8vd5GqXphr9iN4yVujtrINJYxU8n74VHTQ-TdlA/exec';
+const VERSION='1.13',ENDPOINT='https://script.google.com/macros/s/AKfycbyk2Pj807Lvuggb9SwbPwO_lRnuSKh8vd5GqXphr9iN4yVujtrINJYxU8n74VHTQ-TdlA/exec';
 const TOP_HOLD=5000,BOTTOM_HOLD=10000,SCROLL_SPEED=22,REFRESH=10000;
 const $=id=>document.getElementById(id), make=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n};
 let hasLoaded=false,current=null,mode='main',signature='',phase='top',phaseStart=0,offset=0,maxOffset=0,raf=0,failures=0,versionBusy=false;
@@ -52,7 +52,7 @@ function otherRow(r){
 function fitOtherText(){
   if(mode!=='other')return;
   const root=$('columns');
-  for(const el of root.querySelectorAll('.other-caption,.other-big,.other-type,.other-drawn,.other-prize')){
+  for(const el of root.querySelectorAll('.other-caption,.other-big.pending,.other-type,.other-drawn,.other-prize')){
     el.style.fontSize='';const base=parseFloat(getComputedStyle(el).fontSize);if(!base||!el.clientWidth)continue;
     const isPrize=el.classList.contains('other-prize');
     const height=isPrize?el.parentElement.clientHeight:el.classList.contains('other-big')?el.closest('.other-numbers').clientHeight-(el.previousElementSibling?.offsetHeight||0)-window.innerHeight*.0025:el.closest('.other-meta')?.clientHeight||Infinity;
